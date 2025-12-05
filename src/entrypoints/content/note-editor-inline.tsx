@@ -1,6 +1,73 @@
 import { createSignal, Show } from "solid-js";
 import { ToolbarButton } from "./toolbar-button";
 
+/**
+ * Validate URL - only allow http:// and https:// schemes
+ * Prevents javascript: and data: URL injection
+ */
+const isValidUrl = (url: string): boolean => {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    // If URL parsing fails, check if it's a relative URL or missing protocol
+    // Allow URLs that start with common patterns
+    if (url.startsWith("/") || url.startsWith("./") || url.startsWith("../")) {
+      return true;
+    }
+    // Try adding https:// to see if it becomes valid
+    try {
+      const withProtocol = new URL(`https://${url}`);
+      return (
+        withProtocol.protocol === "https:" &&
+        withProtocol.hostname.includes(".")
+      );
+    } catch {
+      return false;
+    }
+  }
+};
+
+/**
+ * Normalize URL - add https:// if no protocol specified
+ */
+const normalizeUrl = (url: string): string => {
+  if (url.startsWith("http://") || url.startsWith("https://")) {
+    return url;
+  }
+  if (url.startsWith("/") || url.startsWith("./") || url.startsWith("../")) {
+    return url;
+  }
+  return `https://${url}`;
+};
+
+/**
+ * Execute formatting command using execCommand
+ * Note: execCommand is deprecated but remains the most reliable way
+ * to handle rich text formatting in contentEditable elements.
+ * It has browser-level selection preservation that custom implementations lack.
+ */
+const execFormat = (
+  command: string,
+  editorRef: HTMLDivElement | undefined,
+  value?: string
+): void => {
+  editorRef?.focus();
+  document.execCommand(command, false, value);
+};
+
+/**
+ * Insert a link with validated URL
+ */
+const insertLink = (
+  url: string,
+  editorRef: HTMLDivElement | undefined
+): void => {
+  if (!editorRef) return;
+  editorRef.focus();
+  document.execCommand("createLink", false, url);
+};
+
 // Inline Note Editor Component
 export function NoteEditorInline(props: {
   initialContent?: string;
@@ -12,6 +79,7 @@ export function NoteEditorInline(props: {
   let linkInputRef: HTMLInputElement | undefined;
   const [showLinkPopup, setShowLinkPopup] = createSignal(false);
   const [linkUrl, setLinkUrl] = createSignal("");
+  const [linkError, setLinkError] = createSignal("");
   let savedSelection: Range | null = null;
 
   const saveSelection = () => {
@@ -22,7 +90,8 @@ export function NoteEditorInline(props: {
   };
 
   const restoreSelection = () => {
-    if (savedSelection) {
+    if (savedSelection && editorRef) {
+      editorRef.focus();
       const sel = window.getSelection();
       sel?.removeAllRanges();
       sel?.addRange(savedSelection);
@@ -31,19 +100,30 @@ export function NoteEditorInline(props: {
 
   const handleLinkSubmit = () => {
     const url = linkUrl().trim();
-    if (url) {
-      restoreSelection();
-      editorRef?.focus();
-      document.execCommand("createLink", false, url);
+    if (!url) {
+      setLinkError("Please enter a URL");
+      return;
     }
+
+    if (!isValidUrl(url)) {
+      setLinkError("Please enter a valid http:// or https:// URL");
+      return;
+    }
+
+    const normalizedUrl = normalizeUrl(url);
+    restoreSelection();
+    insertLink(normalizedUrl, editorRef);
+
     setShowLinkPopup(false);
     setLinkUrl("");
+    setLinkError("");
     savedSelection = null;
   };
 
   const handleLinkCancel = () => {
     setShowLinkPopup(false);
     setLinkUrl("");
+    setLinkError("");
     savedSelection = null;
     editorRef?.focus();
   };
@@ -61,10 +141,10 @@ export function NoteEditorInline(props: {
     if (e.ctrlKey || e.metaKey) {
       if (e.key === "b") {
         e.preventDefault();
-        execFormat("bold");
+        execFormat("bold", editorRef);
       } else if (e.key === "i") {
         e.preventDefault();
-        execFormat("italic");
+        execFormat("italic", editorRef);
       }
     }
   };
@@ -76,11 +156,6 @@ export function NoteEditorInline(props: {
     } else {
       props.onCancel();
     }
-  };
-
-  const execFormat = (command: string, value?: string) => {
-    editorRef?.focus();
-    document.execCommand(command, false, value);
   };
 
   return (
@@ -95,7 +170,9 @@ export function NoteEditorInline(props: {
           "border-bottom": "1px solid rgba(0,0,0,0.05)",
           background: "rgba(0,0,0,0.02)"
         }}>
-        <ToolbarButton onClick={() => execFormat("bold")} title="Bold (Ctrl+B)">
+        <ToolbarButton
+          onClick={() => execFormat("bold", editorRef)}
+          title="Bold (Ctrl+B)">
           <svg
             width="14"
             height="14"
@@ -110,7 +187,7 @@ export function NoteEditorInline(props: {
           </svg>
         </ToolbarButton>
         <ToolbarButton
-          onClick={() => execFormat("italic")}
+          onClick={() => execFormat("italic", editorRef)}
           title="Italic (Ctrl+I)">
           <svg
             width="14"
@@ -125,7 +202,7 @@ export function NoteEditorInline(props: {
           </svg>
         </ToolbarButton>
         <ToolbarButton
-          onClick={() => execFormat("underline")}
+          onClick={() => execFormat("underline", editorRef)}
           title="Underline (Ctrl+U)">
           <svg
             width="14"
@@ -177,7 +254,7 @@ export function NoteEditorInline(props: {
           }}
         />
         <ToolbarButton
-          onClick={() => execFormat("insertUnorderedList")}
+          onClick={() => execFormat("insertUnorderedList", editorRef)}
           title="Bullet List">
           <svg
             width="14"
@@ -298,7 +375,10 @@ export function NoteEditorInline(props: {
               type="url"
               placeholder="https://example.com"
               value={linkUrl()}
-              onInput={(e) => setLinkUrl(e.currentTarget.value)}
+              onInput={(e) => {
+                setLinkUrl(e.currentTarget.value);
+                setLinkError(""); // Clear error on input
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
@@ -313,11 +393,22 @@ export function NoteEditorInline(props: {
                 "max-width": "240px",
                 padding: "8px 12px",
                 "font-size": "13px",
-                border: "1px solid #e5e7eb",
+                border: linkError() ? "1px solid #ef4444" : "1px solid #e5e7eb",
                 "border-radius": "6px",
                 outline: "none"
               }}
             />
+            <Show when={linkError()}>
+              <div
+                style={{
+                  "font-size": "11px",
+                  color: "#ef4444",
+                  "margin-top": "6px",
+                  "text-align": "center"
+                }}>
+                {linkError()}
+              </div>
+            </Show>
           </div>
           {/* Footer */}
           <div

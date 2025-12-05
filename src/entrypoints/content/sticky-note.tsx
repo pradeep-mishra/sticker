@@ -1,3 +1,4 @@
+import { positionManager } from "@/lib/position-manager";
 import { calculateNotePosition, NOTE_DIMENSIONS } from "@/lib/positioning";
 import { findElement } from "@/lib/selector";
 import type { Note } from "@/types/notes";
@@ -29,13 +30,11 @@ export function StickyNote(props: {
     }
   };
 
-  // Listen for scroll and resize events
-  window.addEventListener("scroll", updatePosition, true);
-  window.addEventListener("resize", updatePosition);
+  // Subscribe to shared position manager (single scroll/resize handler for all notes)
+  const unsubscribe = positionManager.subscribe(updatePosition);
 
   onCleanup(() => {
-    window.removeEventListener("scroll", updatePosition, true);
-    window.removeEventListener("resize", updatePosition);
+    unsubscribe();
   });
 
   return (
