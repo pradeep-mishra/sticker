@@ -1,11 +1,16 @@
 {
   "name": "super_sticker",
   "description": "Web Sticky Notes Browser Extension",
-  "author": "Pradeep Mishra",
-  "homepage": "https://github.com/pradeepmishra/sticker",
+  "author": {
+    "name": "Pradeep Mishra",
+    "email": "pradeep23oct@gmail.com",
+    "url": "https://github.com/pradeep-mishra"
+  },
+  "license": "MIT",
+  "homepage": "https://prmworks.com/products/super-sticker",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pradeepmishra/sticker.git"
+    "url": "https://github.com/pradeep-mishra/sticker.git"
   },
   "keywords": [
     "browser",
