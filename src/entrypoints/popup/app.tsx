@@ -191,7 +191,7 @@ const App: Component = () => {
     }
   };
 
-  const handleEditNote = async (noteId: string) => {
+  const handleViewNote = async (noteId: string) => {
     const [tab] = await browser.tabs.query({
       active: true,
       currentWindow: true
@@ -199,7 +199,7 @@ const App: Component = () => {
 
     if (tab?.id) {
       await browser.tabs.sendMessage(tab.id, {
-        type: "EDIT_NOTE",
+        type: "VIEW_NOTE",
         noteId
       });
       window.close();
@@ -250,9 +250,9 @@ const App: Component = () => {
       </header>
 
       {/* Main Content */}
-      <main class="p-4 space-y-6 overflow-y-auto scrollbar-hide">
-        {/* Action Buttons */}
-        <div class="grid grid-cols-1 gap-3">
+      <main class="flex-1 flex flex-col min-h-0 overflow-hidden">
+        {/* Action Buttons - Fixed */}
+        <div class="shrink-0 p-4 pb-0 grid grid-cols-1 gap-3">
           <Show
             when={!isSelectionMode()}
             fallback={
@@ -290,8 +290,8 @@ const App: Component = () => {
           </button>
         </div>
 
-        {/* Notes List Section - Accordion */}
-        <div class="space-y-3">
+        {/* Notes List Section - Scrollable */}
+        <div class="flex-1 min-h-0 overflow-y-auto popup-main p-4 space-y-3">
           <button
             onClick={() => setIsAccordionOpen(!isAccordionOpen())}
             class="flex items-center justify-between w-full px-1 py-1 hover:bg-gray-100/50 rounded-lg transition-colors group">
@@ -338,7 +338,7 @@ const App: Component = () => {
                     <For each={notes()}>
                       {(note) => (
                         <div
-                          onClick={() => handleEditNote(note.id)}
+                          onClick={() => handleViewNote(note.id)}
                           class="group relative bg-white p-3.5 rounded-xl border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:border-blue-100/50 transition-all duration-300 animate-slide-in cursor-pointer">
                           <p class="text-sm text-gray-600 leading-relaxed line-clamp-2 pr-6 font-medium">
                             {truncateContent(note.content)}

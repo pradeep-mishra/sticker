@@ -45,7 +45,7 @@ export default defineBackground({
           setBadgeCount(tabId, message.count);
         }
       }
-      return true;
+      // Don't return true - no async response needed
     });
   }
 });

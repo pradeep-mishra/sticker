@@ -1,4 +1,11 @@
-import { createSignal, Show } from "solid-js";
+import {
+  BoldIcon,
+  BulletListIcon,
+  ItalicIcon,
+  LinkIcon,
+  UnderlineIcon
+} from "@/components/ui/icons";
+import { createSignal, onCleanup, onMount, Show } from "solid-js";
 import { ToolbarButton } from "./toolbar-button";
 
 /**
@@ -75,12 +82,59 @@ export function NoteEditorInline(props: {
   onCancel: () => void;
   autoFocus?: boolean;
 }) {
+  let containerRef: HTMLDivElement | undefined;
   let editorRef: HTMLDivElement | undefined;
   let linkInputRef: HTMLInputElement | undefined;
   const [showLinkPopup, setShowLinkPopup] = createSignal(false);
   const [linkUrl, setLinkUrl] = createSignal("");
   const [linkError, setLinkError] = createSignal("");
   let savedSelection: Range | null = null;
+
+  /**
+   * Block keyboard events from propagating to webpage.
+   * Registered on document level in capture phase to intercept before webpage handlers.
+   * Only blocks events that originate from within our container.
+   * Uses composedPath() to properly handle Shadow DOM event retargeting.
+   */
+  const documentKeyHandler = (e: KeyboardEvent) => {
+    // Use composedPath to check if event originated from our container (works with Shadow DOM)
+    const path = e.composedPath();
+    if (containerRef && path.includes(containerRef)) {
+      // Stop propagation but NOT immediate - allow our element handlers to run
+      e.stopPropagation();
+
+      // Re-focus editor if focus was stolen (some sites move focus on keydown)
+      // Use microtask to run after any synchronous focus changes
+      queueMicrotask(() => {
+        const shadowRoot = containerRef.getRootNode() as ShadowRoot;
+        const shadowActive = shadowRoot?.activeElement;
+
+        // If focus moved outside our editor, restore it
+        if (
+          editorRef &&
+          shadowActive !== editorRef &&
+          shadowActive !== linkInputRef
+        ) {
+          editorRef.focus();
+        }
+      });
+    }
+  };
+
+  // Register capture-phase listeners on DOCUMENT level to intercept events
+  // before any webpage handlers can process them
+  onMount(() => {
+    // Keyboard events - most important for shortcuts
+    document.addEventListener("keydown", documentKeyHandler, true);
+    document.addEventListener("keyup", documentKeyHandler, true);
+    document.addEventListener("keypress", documentKeyHandler, true);
+  });
+
+  onCleanup(() => {
+    document.removeEventListener("keydown", documentKeyHandler, true);
+    document.removeEventListener("keyup", documentKeyHandler, true);
+    document.removeEventListener("keypress", documentKeyHandler, true);
+  });
 
   const saveSelection = () => {
     const sel = window.getSelection();
@@ -128,14 +182,29 @@ export function NoteEditorInline(props: {
     editorRef?.focus();
   };
 
+  /**
+   * Stop all event propagation to prevent webpage shortcuts from triggering.
+   * Uses stopImmediatePropagation to stop all other handlers on same element.
+   */
+  const stopAllPropagation = (e: Event) => {
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+  };
+
   const handleKeyDown = (e: KeyboardEvent) => {
+    // Block all keyboard events from reaching the webpage
+
+    stopAllPropagation(e);
+
     if (e.key === "Escape") {
       e.preventDefault();
       props.onCancel();
+      return;
     }
     if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       handleSave();
+      return;
     }
     // Keyboard shortcuts for formatting
     if (e.ctrlKey || e.metaKey) {
@@ -159,7 +228,7 @@ export function NoteEditorInline(props: {
   };
 
   return (
-    <div style={{ position: "relative" }}>
+    <div ref={containerRef} style={{ position: "relative" }}>
       {/* RTE Toolbar */}
       <div
         style={{
@@ -173,49 +242,17 @@ export function NoteEditorInline(props: {
         <ToolbarButton
           onClick={() => execFormat("bold", editorRef)}
           title="Bold (Ctrl+B)">
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            stroke-linejoin="round">
-            <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z" />
-            <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z" />
-          </svg>
+          <BoldIcon />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => execFormat("italic", editorRef)}
           title="Italic (Ctrl+I)">
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5">
-            <line x1="19" y1="4" x2="10" y2="4" />
-            <line x1="14" y1="20" x2="5" y2="20" />
-            <line x1="15" y1="4" x2="9" y2="20" />
-          </svg>
+          <ItalicIcon />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => execFormat("underline", editorRef)}
           title="Underline (Ctrl+U)">
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            stroke-linejoin="round">
-            <path d="M6 4v6a6 6 0 0 0 12 0V4" />
-            <line x1="4" y1="20" x2="20" y2="20" />
-          </svg>
+          <UnderlineIcon />
         </ToolbarButton>
         <div
           style={{
@@ -232,18 +269,7 @@ export function NoteEditorInline(props: {
             setTimeout(() => linkInputRef?.focus(), 0);
           }}
           title="Insert Link">
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            stroke-linejoin="round">
-            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-          </svg>
+          <LinkIcon />
         </ToolbarButton>
         <div
           style={{
@@ -256,20 +282,7 @@ export function NoteEditorInline(props: {
         <ToolbarButton
           onClick={() => execFormat("insertUnorderedList", editorRef)}
           title="Bullet List">
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2">
-            <line x1="9" y1="6" x2="20" y2="6" />
-            <line x1="9" y1="12" x2="20" y2="12" />
-            <line x1="9" y1="18" x2="20" y2="18" />
-            <circle cx="4" cy="6" r="1.5" fill="currentColor" />
-            <circle cx="4" cy="12" r="1.5" fill="currentColor" />
-            <circle cx="4" cy="18" r="1.5" fill="currentColor" />
-          </svg>
+          <BulletListIcon />
         </ToolbarButton>
       </div>
       {/* Editor */}
@@ -293,6 +306,8 @@ export function NoteEditorInline(props: {
         }}
         innerHTML={props.initialContent ?? ""}
         onKeyDown={handleKeyDown}
+        onKeyUp={stopAllPropagation}
+        onKeyPress={stopAllPropagation}
         data-placeholder="Type your note..."
       />
       <div
@@ -380,6 +395,7 @@ export function NoteEditorInline(props: {
                 setLinkError(""); // Clear error on input
               }}
               onKeyDown={(e) => {
+                stopAllPropagation(e);
                 if (e.key === "Enter") {
                   e.preventDefault();
                   handleLinkSubmit();
@@ -388,6 +404,8 @@ export function NoteEditorInline(props: {
                   handleLinkCancel();
                 }
               }}
+              onKeyUp={stopAllPropagation}
+              onKeyPress={stopAllPropagation}
               style={{
                 width: "100%",
                 "max-width": "240px",

@@ -20,8 +20,7 @@ body {
     Arial,
     sans-serif;
   background-color: #f9fafb;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 #app {
@@ -31,7 +30,13 @@ body {
   max-height: 500px;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar - Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #e5e7eb transparent;
+}
+
+/* Custom scrollbar - WebKit (Chrome, Edge, Brave) */
 ::-webkit-scrollbar {
   width: 6px;
   height: 4px;
@@ -48,6 +53,10 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #d1d5db;
+}
+
+.popup-main {
+  scrollbar-gutter: stable;
 }
 
 /* Accordion animation */

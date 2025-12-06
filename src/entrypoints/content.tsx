@@ -259,9 +259,31 @@ export default defineContentScript({
         case "SET_VISIBILITY":
           setNotesVisible(message.visible);
           break;
-        case "TOGGLE_VISIBILITY":
-          setNotesVisible((v) => !v);
+        case "TOGGLE_VISIBILITY": {
+          const newVisibility = !notesVisible();
+          setNotesVisible(newVisibility);
+          setNotesVisibility(newVisibility);
           break;
+        }
+        case "VIEW_NOTE": {
+          // Find the note and scroll to its anchor if not orphan
+          const allPageNotes = [...notes(), ...orphanNotes()];
+          const targetNote = allPageNotes.find((n) => n.id === message.noteId);
+          if (targetNote) {
+            const anchorElement = findElement(targetNote.selector);
+            if (anchorElement) {
+              // Not an orphan - scroll to element and show notes in read mode
+              anchorElement.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+              });
+            }
+            // Show notes and persist to storage so popup reflects correct state
+            setNotesVisible(true);
+            setNotesVisibility(true);
+          }
+          break;
+        }
         case "EDIT_NOTE":
           setEditingNoteId(message.noteId);
           break;

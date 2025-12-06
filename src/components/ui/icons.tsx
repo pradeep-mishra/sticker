@@ -1,7 +1,9 @@
-import { Component } from "solid-js";
+import { Component, JSX } from "solid-js";
 
 interface IconProps {
   class?: string;
+  size?: number;
+  style?: JSX.CSSProperties;
 }
 
 export const PlusIcon: Component<IconProps> = (props) => (
@@ -180,5 +182,91 @@ export const SuperStickerIcon: Component<IconProps> = (props) => (
         opacity="0.3"
       />
     </g>
+  </svg>
+);
+
+export const BoldIcon: Component<IconProps> = (props) => (
+  <svg
+    class={props.class}
+    width={props.size ?? 14}
+    height={props.size ?? 14}
+    style={props.style}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2.5"
+    stroke-linecap="round"
+    stroke-linejoin="round">
+    <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z" />
+    <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z" />
+  </svg>
+);
+
+export const ItalicIcon: Component<IconProps> = (props) => (
+  <svg
+    class={props.class}
+    width={props.size ?? 14}
+    height={props.size ?? 14}
+    style={props.style}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2.5">
+    <line x1="19" y1="4" x2="10" y2="4" />
+    <line x1="14" y1="20" x2="5" y2="20" />
+    <line x1="15" y1="4" x2="9" y2="20" />
+  </svg>
+);
+
+export const UnderlineIcon: Component<IconProps> = (props) => (
+  <svg
+    class={props.class}
+    width={props.size ?? 14}
+    height={props.size ?? 14}
+    style={props.style}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2.5"
+    stroke-linecap="round"
+    stroke-linejoin="round">
+    <path d="M6 4v6a6 6 0 0 0 12 0V4" />
+    <line x1="4" y1="20" x2="20" y2="20" />
+  </svg>
+);
+
+export const LinkIcon: Component<IconProps> = (props) => (
+  <svg
+    class={props.class}
+    width={props.size ?? 14}
+    height={props.size ?? 14}
+    style={props.style}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2.5"
+    stroke-linecap="round"
+    stroke-linejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+  </svg>
+);
+
+export const BulletListIcon: Component<IconProps> = (props) => (
+  <svg
+    class={props.class}
+    width={props.size ?? 14}
+    height={props.size ?? 14}
+    style={props.style}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2">
+    <line x1="9" y1="6" x2="20" y2="6" />
+    <line x1="9" y1="12" x2="20" y2="12" />
+    <line x1="9" y1="18" x2="20" y2="18" />
+    <circle cx="4" cy="6" r="1.5" fill="currentColor" />
+    <circle cx="4" cy="12" r="1.5" fill="currentColor" />
+    <circle cx="4" cy="18" r="1.5" fill="currentColor" />
   </svg>
 );
