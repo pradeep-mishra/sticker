@@ -1,18 +1,19 @@
-# 📌 Super Sticker
+# Super Sticker
 
 A browser extension that lets you attach sticky notes to any element on any webpage. Notes persist and reappear when you revisit the page.
 
-## ✨ Features
+## Features
 
-- **Attach Notes to Elements** — Click any element on a webpage to add a sticky note
+- **Attach Notes to Elements** — Click "Add Note" button in extension popup and then click any element on a webpage to add a sticky note
+- **See All Notes in the page** — Click "Show Notes" button in extension popup
 - **Smart Positioning** — Notes automatically position themselves to avoid viewport edges
 - **Glassmorphism Design** — Beautiful frosted glass aesthetic
 - **Persistent Storage** — Notes are saved and restored when you revisit pages
-- **Orphan Notes Panel** — Notes for removed elements appear in a collapsible panel
+- **Orphan Notes Panel** — Notes for removed elements can be accessed from a collapsible panel
 - **Keyboard Shortcuts** — Quick access without touching the mouse
 - **Cross-Browser Support** — Works on Chrome, Brave, Edge, and Firefox
 
-## 🎯 How It Works
+## How It Works
 
 1. Click the extension icon and select "Add Note"
 2. Hover over any element — it highlights with a dashed border
@@ -28,14 +29,14 @@ A browser extension that lets you attach sticky notes to any element on any webp
 | `Alt + Shift + V` | Toggle note visibility               |
 | `Escape`          | Exit selection mode / Cancel editing |
 
-## 📦 Installation
+## Installation
 
 ### From Source
 
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/pradeepmishra/sticker.git
+   git clone https://github.com/pradeep-mishra/sticker.git
    cd sticker
    ```
 
@@ -68,7 +69,7 @@ A browser extension that lets you attach sticky notes to any element on any webp
    - Click "Load Temporary Add-on"
    - Select any file in `.output/firefox-mv2` folder
 
-## 🧑‍💻 Development
+## Development
 
 Start the development server with hot reload:
 
@@ -94,7 +95,7 @@ npm run dev:firefox
 | `npm run format`        | Format with Prettier             |
 | `npm run typecheck`     | TypeScript type check            |
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ├── src/
@@ -119,6 +120,8 @@ npm run dev:firefox
 | Edge    | Chromium | ✅ Supported |
 | Firefox | Gecko    | ✅ Supported |
 
-## 📄 License
+## License
 
-© [Pradeep Mishra](https://github.com/pradeepmishra)
+This project is licensed under the [MIT License](LICENSE).
+
+© 2025 [Pradeep Mishra](https://github.com/pradeep-mishra)

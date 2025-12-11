@@ -272,7 +272,7 @@ const App: Component = () => {
               <div class="p-1 bg-white/20 rounded-full group-hover:bg-white/30 transition-colors">
                 <PlusIcon class="w-4 h-4" />
               </div>
-              Add New Note
+              Add Note
             </button>
           </Show>
 
