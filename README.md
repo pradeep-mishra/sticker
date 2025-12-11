@@ -1,6 +1,6 @@
 # Super Sticker
 
-A browser extension that lets you attach sticky notes to any element on any webpage. Notes persist and reappear when you revisit the page.
+A browser extension that lets you attach sticky notes to any element on any webpage. Notes persist and you can see them anytime by clicking the "Show Notes" from the popup.
 
 ## Features
 
@@ -21,7 +21,7 @@ A browser extension that lets you attach sticky notes to any element on any webp
 4. Type your note and save
 5. Continue adding notes or click "Done Adding" to exit
 
-## ⌨️ Keyboard Shortcuts
+## Keyboard Shortcuts
 
 | Shortcut          | Action                               |
 | ----------------- | ------------------------------------ |
@@ -111,7 +111,7 @@ npm run dev:firefox
 └── wxt.config.ts           # WXT configuration
 ```
 
-## 🌐 Browser Compatibility
+## Browser Compatibility
 
 | Browser | Engine   | Status       |
 | ------- | -------- | ------------ |
