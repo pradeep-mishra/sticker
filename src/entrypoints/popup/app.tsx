@@ -89,6 +89,7 @@ const App: Component = () => {
   const [isLoading, setIsLoading] = createSignal(true);
   const [currentTabId, setCurrentTabId] = createSignal<number | null>(null);
   const [isAccordionOpen, setIsAccordionOpen] = createSignal(false);
+  const [needsReload, setNeedsReload] = createSignal(false);
 
   // Load popup state from storage and content script
   const loadState = async () => {
@@ -110,15 +111,17 @@ const App: Component = () => {
         const visible = await getNotesVisibility();
         setNotesVisible(visible);
 
-        // Check if selection mode is active
-        const response = (await browser.tabs
-          .sendMessage(tab.id, {
+        // Check if content script is loaded by sending GET_STATE
+        try {
+          const response = (await browser.tabs.sendMessage(tab.id, {
             type: "GET_STATE"
-          })
-          .catch(() => ({ isSelectionMode: false }))) as {
-          isSelectionMode?: boolean;
-        };
-        setIsSelectionMode(response?.isSelectionMode ?? false);
+          })) as { isSelectionMode?: boolean };
+          setIsSelectionMode(response?.isSelectionMode ?? false);
+          setNeedsReload(false);
+        } catch {
+          // Content script not loaded - page was opened before extension install
+          setNeedsReload(true);
+        }
       }
     } catch (error) {
       console.error("Failed to load popup data:", error);
@@ -249,46 +252,88 @@ const App: Component = () => {
         </div>
       </header>
 
+      {/* Reload Notice */}
+      <Show when={needsReload()}>
+        <div class="mx-4 mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
+          <div class="shrink-0 mt-0.5">
+            <svg
+              class="w-4 h-4 text-amber-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-xs text-amber-800 font-medium leading-relaxed">
+              This page was loaded before the extension was installed.{" "}
+              <button
+                onClick={async () => {
+                  const [tab] = await browser.tabs.query({
+                    active: true,
+                    currentWindow: true
+                  });
+                  if (tab?.id) {
+                    await browser.tabs.reload(tab.id);
+                    window.close();
+                  }
+                }}
+                class="text-amber-700 underline underline-offset-2 hover:text-amber-900 font-semibold">
+                Reload page
+              </button>{" "}
+              to enable note selection.
+            </p>
+          </div>
+        </div>
+      </Show>
+
       {/* Main Content */}
       <main class="flex-1 flex flex-col min-h-0 overflow-hidden">
-        {/* Action Buttons - Fixed */}
-        <div class="shrink-0 p-4 pb-0 grid grid-cols-1 gap-3">
-          <Show
-            when={!isSelectionMode()}
-            fallback={
-              <button
-                onClick={handleDoneAdding}
-                class="group flex items-center justify-center gap-3 w-full py-3 px-4 bg-gradient-to-br from-gray-800 to-gray-900 text-white rounded-xl font-semibold shadow-lg shadow-gray-500/20 hover:shadow-gray-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
-                <span class="relative flex h-2.5 w-2.5 mr-1">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500"></span>
-                </span>
-                Done Adding
-              </button>
-            }>
-            <button
-              onClick={handleAddNote}
-              class="group flex items-center justify-center gap-3 w-full py-3 px-4 bg-gradient-to-br from-sticker-primary to-blue-600 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
-              <div class="p-1 bg-white/20 rounded-full group-hover:bg-white/30 transition-colors">
-                <PlusIcon class="w-4 h-4" />
-              </div>
-              Add Note
-            </button>
-          </Show>
-
-          <button
-            onClick={handleToggleVisibility}
-            class="group flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-white border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-[0.99]">
+        {/* Action Buttons - Hidden when page needs reload */}
+        <Show when={!needsReload()}>
+          <div class="shrink-0 p-4 pb-0 grid grid-cols-1 gap-3">
             <Show
-              when={notesVisible()}
+              when={!isSelectionMode()}
               fallback={
-                <EyeOffIcon class="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                <button
+                  onClick={handleDoneAdding}
+                  class="group flex items-center justify-center gap-3 w-full py-3 px-4 bg-gradient-to-br from-gray-800 to-gray-900 text-white rounded-xl font-semibold shadow-lg shadow-gray-500/20 hover:shadow-gray-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
+                  <span class="relative flex h-2.5 w-2.5 mr-1">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500"></span>
+                  </span>
+                  Done Adding
+                </button>
               }>
-              <EyeIcon class="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+              <button
+                onClick={handleAddNote}
+                class="group flex items-center justify-center gap-3 w-full py-3 px-4 bg-gradient-to-br from-sticker-primary to-blue-600 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
+                <div class="p-1 bg-white/20 rounded-full group-hover:bg-white/30 transition-colors">
+                  <PlusIcon class="w-4 h-4" />
+                </div>
+                Add Note
+              </button>
             </Show>
-            {notesVisible() ? "Hide Notes" : "Show Notes"}
-          </button>
-        </div>
+
+            <button
+              onClick={handleToggleVisibility}
+              class="group flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-white border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-[0.99]">
+              <Show
+                when={notesVisible()}
+                fallback={
+                  <EyeOffIcon class="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                }>
+                <EyeIcon class="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+              </Show>
+              {notesVisible() ? "Hide Notes" : "Show Notes"}
+            </button>
+          </div>
+        </Show>
 
         {/* Notes List Section - Scrollable */}
         <div class="flex-1 min-h-0 overflow-y-auto popup-main p-4 space-y-3">

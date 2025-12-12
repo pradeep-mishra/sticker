@@ -10,7 +10,7 @@ export default defineConfig({
   modules: ["@wxt-dev/module-solid"],
 
   manifest: {
-    name: "Sticker",
+    name: "Super Sticker",
     description: "Attach sticky notes to any element on any webpage",
     permissions: ["storage", "activeTab"],
     icons: {
@@ -32,6 +32,18 @@ export default defineConfig({
         },
         description: "Toggle note visibility"
       }
+    },
+    browser_specific_settings: {
+      gecko: {
+        id: "super_sticker@prmworks.com",
+        strict_min_version: "109.0",
+        // Mozilla requires data_collection_permissions as of Nov 2025
+        // Empty arrays indicate no data is collected
+        data_collection_permissions: {
+          // "none" must be a string inside the 'required' array
+          required: ["none"]
+        }
+      } as Record<string, unknown>
     }
   }
 });

@@ -28,8 +28,10 @@
     "dev:firefox": "wxt --browser firefox",
     "build": "wxt build",
     "build:firefox": "wxt build --browser firefox",
-    "zip": "wxt zip",
+    "zip": "wxt zip --mode production",
+    "zip:prod": "wxt zip --mode production",
     "zip:firefox": "wxt zip --browser firefox",
+    "zip:firefox-prod": "wxt zip --browser firefox --mode production",
     "lint": "eslint .",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit"
