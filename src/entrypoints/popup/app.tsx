@@ -124,24 +124,25 @@ const App: Component = () => {
         const pageNotes = await getNotesForUrl(tab.url);
         setNotes(pageNotes);
 
-        // Get visibility state from storage
-        const visible = await getNotesVisibility();
-        setNotesVisible(visible);
-
         // Get theme from storage
         const theme = await getNoteTheme();
         setCurrentTheme(theme);
 
         // Check if content script is loaded by sending GET_STATE
+        // Also get the actual visibility state from the content script (not storage)
         try {
           const response = (await browser.tabs.sendMessage(tab.id, {
             type: "GET_STATE"
-          })) as { isSelectionMode?: boolean };
+          })) as { isSelectionMode?: boolean; notesVisible?: boolean };
           setIsSelectionMode(response?.isSelectionMode ?? false);
+          setNotesVisible(response?.notesVisible ?? false);
           setNeedsReload(false);
         } catch {
           // Content script not loaded - page was opened before extension install
           setNeedsReload(true);
+          // Fallback to storage for visibility
+          const visible = await getNotesVisibility();
+          setNotesVisible(visible);
         }
       }
     } catch (error) {
@@ -165,10 +166,20 @@ const App: Component = () => {
       }
     };
 
+    // Listen for tab activation changes (switching between tabs)
+    const handleTabActivated = (activeInfo: { tabId: number }) => {
+      // When user switches to a different tab, refresh popup state
+      if (activeInfo.tabId !== currentTabId()) {
+        loadState();
+      }
+    };
+
     browser.tabs.onUpdated.addListener(handleTabUpdated);
+    browser.tabs.onActivated.addListener(handleTabActivated);
 
     onCleanup(() => {
       browser.tabs.onUpdated.removeListener(handleTabUpdated);
+      browser.tabs.onActivated.removeListener(handleTabActivated);
     });
   });
 

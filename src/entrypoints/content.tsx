@@ -278,7 +278,10 @@ export default defineContentScript({
           setIsSelectionMode(false);
           break;
         case "GET_STATE":
-          sendResponse({ isSelectionMode: isSelectionMode() });
+          sendResponse({
+            isSelectionMode: isSelectionMode(),
+            notesVisible: notesVisible()
+          });
           return; // Synchronous response sent
         case "SET_VISIBILITY":
           setNotesVisible(message.visible);
