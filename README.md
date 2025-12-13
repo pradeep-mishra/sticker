@@ -8,7 +8,8 @@ A browser extension that lets you attach sticky notes to any element on any webp
 - **See All Notes in the page** — Click "Show Notes" button in extension popup
 - **Smart Positioning** — Notes automatically position themselves to avoid viewport edges
 - **Glassmorphism Design** — Beautiful frosted glass aesthetic
-- **Persistent Storage** — Notes are saved and restored when you revisit pages
+- **Theme Support** — Choose from 6 pre-built color themes (Classic, Ocean, Forest, Rose, Lavender, Sunset)
+- **Persistent Storage** — Notes and theme preferences are saved and restored when you revisit pages
 - **Orphan Notes Panel** — Notes for removed elements can be accessed from a collapsible panel
 - **Keyboard Shortcuts** — Quick access without touching the mouse
 - **Cross-Browser Support** — Works on Chrome, Brave, Edge, and Firefox
@@ -20,6 +21,21 @@ A browser extension that lets you attach sticky notes to any element on any webp
 3. Click the element to attach a note
 4. Type your note and save
 5. Continue adding notes or click "Done Adding" to exit
+
+### Changing Note Theme
+
+Click the gear icon in the popup header to open the theme picker. Choose from 6 color themes:
+
+| Theme    | Color  |
+| -------- | ------ |
+| Classic  | Yellow |
+| Ocean    | Blue   |
+| Forest   | Green  |
+| Rose     | Pink   |
+| Lavender | Purple |
+| Sunset   | Orange |
+
+Your theme preference is saved and applies to all notes across all pages.
 
 ## Keyboard Shortcuts
 
@@ -100,13 +116,13 @@ npm run dev:firefox
 ```
 ├── src/
 │   ├── entrypoints/
-│   │   ├── popup/           # Extension popup UI
+│   │   ├── popup/           # Extension popup UI (with theme picker)
 │   │   ├── background.ts    # Service worker
 │   │   ├── content.tsx      # Content script (renders notes)
 │   │   └── content/         # Content script components
 │   ├── components/          # Reusable UI components
 │   ├── lib/                 # Utilities (storage, positioning, selectors)
-│   └── types/               # TypeScript definitions
+│   └── types/               # TypeScript definitions (notes, themes)
 ├── public/                  # Static assets (icons)
 └── wxt.config.ts           # WXT configuration
 ```
