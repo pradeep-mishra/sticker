@@ -164,11 +164,11 @@ export default defineContentScript({
     });
 
     // Create shadow DOM UI
+    // Use "overlay" position to avoid affecting page layout (prevents scrollbars on webapps)
     const ui = await createShadowRootUi(ctx, {
       name: "sticker-notes",
-      position: "inline",
+      position: "overlay",
       anchor: "body",
-      append: "first",
       onMount: (container) => {
         // Inject styles
         const style = document.createElement("style");
@@ -294,8 +294,8 @@ export default defineContentScript({
       }
     });
 
-    // Keyboard shortcuts
-    document.addEventListener("keydown", (e) => {
+    // Keyboard shortcuts handler
+    const handleKeydown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         if (isSelectionMode()) {
           setIsSelectionMode(false);
@@ -307,6 +307,21 @@ export default defineContentScript({
           setEditingNoteId(null);
         }
       }
+    };
+
+    document.addEventListener("keydown", handleKeydown);
+
+    // Cleanup on context invalidation (extension update/reload)
+    ctx.onInvalidated(() => {
+      // Remove event listeners
+      document.removeEventListener("keydown", handleKeydown);
+
+      // Clear any element highlights
+      highlightedElements.forEach((el) => {
+        el.style.outline = "";
+        el.dataset.stickerHighlight = "";
+      });
+      highlightedElements.clear();
     });
   }
 });

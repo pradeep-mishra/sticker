@@ -50,14 +50,26 @@ export default defineBackground({
   }
 });
 
+// Browser internal URLs where content scripts can't run
+const INTERNAL_URL_PREFIXES = [
+  "chrome://",
+  "chrome-extension://",
+  "about:",
+  "edge://",
+  "brave://",
+  "moz-extension://",
+  "data:",
+  "javascript:",
+  "view-source:"
+];
+
+const isInternalUrl = (url: string): boolean =>
+  INTERNAL_URL_PREFIXES.some((prefix) => url.startsWith(prefix));
+
 async function updateBadgeForTab(tabId: number): Promise<void> {
   try {
     const tab = await browser.tabs.get(tabId);
-    if (
-      tab.url &&
-      !tab.url.startsWith("chrome://") &&
-      !tab.url.startsWith("about:")
-    ) {
+    if (tab.url && !isInternalUrl(tab.url)) {
       const count = await getNoteCount(tab.url);
       await setBadgeCount(tabId, count);
     } else {

@@ -1,4 +1,6 @@
+import { positionManager } from "@/lib/position-manager";
 import { calculateNotePosition, NOTE_DIMENSIONS } from "@/lib/positioning";
+import { createSignal, onCleanup } from "solid-js";
 import { NoteEditorInline } from "./note-editor-inline";
 
 // New Note Editor Component
@@ -7,15 +9,26 @@ export function NewNoteEditor(props: {
   onSave: (content: string) => void;
   onCancel: () => void;
 }) {
-  const { style } = calculateNotePosition(props.element);
+  // Track position reactively to follow element on scroll/resize
+  const initialPosition = calculateNotePosition(props.element);
+  const [position, setPosition] = createSignal(initialPosition.style);
+
+  const updatePosition = () => {
+    const { style } = calculateNotePosition(props.element);
+    setPosition(style);
+  };
+
+  // Subscribe to shared position manager
+  const unsubscribe = positionManager.subscribe(updatePosition);
+  onCleanup(() => unsubscribe());
 
   return (
     <div
       class="sticker-ui"
       style={{
         position: "fixed",
-        top: style.top,
-        left: style.left,
+        top: position().top,
+        left: position().left,
         width: `${NOTE_DIMENSIONS.width}px`,
         "z-index": "2147483646",
         animation: "scaleIn 0.2s ease-out"
