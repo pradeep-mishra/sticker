@@ -1,8 +1,10 @@
 import type { Note, PageNotes } from "@/types/notes";
+import { DEFAULT_THEME_ID, type ThemeId } from "@/types/theme";
 import { browser } from "wxt/browser";
 
 const STORAGE_KEY = "sticker_notes";
 const VISIBILITY_KEY = "sticker_visible";
+const THEME_KEY = "sticker_theme";
 
 export const getAllNotes = async (): Promise<PageNotes> => {
   const result = await browser.storage.local.get(STORAGE_KEY);
@@ -82,4 +84,13 @@ export const getNoteCount = async (url: string): Promise<number> => {
 
 export const generateNoteId = (): string => {
   return crypto.randomUUID();
+};
+
+export const getNoteTheme = async (): Promise<ThemeId> => {
+  const result = await browser.storage.local.get(THEME_KEY);
+  return (result[THEME_KEY] as ThemeId | undefined) ?? DEFAULT_THEME_ID;
+};
+
+export const setNoteTheme = async (themeId: ThemeId): Promise<void> => {
+  await browser.storage.local.set({ [THEME_KEY]: themeId });
 };

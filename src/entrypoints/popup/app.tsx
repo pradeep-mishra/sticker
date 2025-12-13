@@ -1,8 +1,10 @@
 import {
+  CheckIcon,
   ChevronDownIcon,
   EyeIcon,
   EyeOffIcon,
   PlusIcon,
+  SettingsIcon,
   StickerIcon,
   SuperStickerIcon,
   TrashIcon
@@ -11,9 +13,12 @@ import {
   deleteNote,
   getNotesForUrl,
   getNotesVisibility,
-  setNotesVisibility
+  getNoteTheme,
+  setNotesVisibility,
+  setNoteTheme
 } from "@/lib/storage";
 import type { Note } from "@/types/notes";
+import { THEMES, type ThemeId } from "@/types/theme";
 import {
   Component,
   createSignal,
@@ -23,6 +28,16 @@ import {
   Show
 } from "solid-js";
 import { browser } from "wxt/browser";
+
+// Theme IDs in display order
+const THEME_IDS: ThemeId[] = [
+  "yellow",
+  "blue",
+  "green",
+  "pink",
+  "purple",
+  "orange"
+];
 
 // Platform detection for keyboard shortcuts (using modern API with fallback)
 const getPlatform = (): "mac" | "windows" | "linux" => {
@@ -90,6 +105,8 @@ const App: Component = () => {
   const [currentTabId, setCurrentTabId] = createSignal<number | null>(null);
   const [isAccordionOpen, setIsAccordionOpen] = createSignal(false);
   const [needsReload, setNeedsReload] = createSignal(false);
+  const [currentTheme, setCurrentTheme] = createSignal<ThemeId>("yellow");
+  const [isThemePickerOpen, setIsThemePickerOpen] = createSignal(false);
 
   // Load popup state from storage and content script
   const loadState = async () => {
@@ -110,6 +127,10 @@ const App: Component = () => {
         // Get visibility state from storage
         const visible = await getNotesVisibility();
         setNotesVisible(visible);
+
+        // Get theme from storage
+        const theme = await getNoteTheme();
+        setCurrentTheme(theme);
 
         // Check if content script is loaded by sending GET_STATE
         try {
@@ -238,6 +259,12 @@ const App: Component = () => {
     return text.slice(0, maxLength) + "…";
   };
 
+  const handleThemeSelect = async (themeId: ThemeId) => {
+    await setNoteTheme(themeId);
+    setCurrentTheme(themeId);
+    setIsThemePickerOpen(false);
+  };
+
   return (
     <div class="flex flex-col min-h-[200px] max-h-[500px] bg-gray-50/50 font-sans text-gray-900 selection:bg-blue-100 selection:text-blue-900">
       {/* Header */}
@@ -249,6 +276,48 @@ const App: Component = () => {
           <h1 class="text-lg font-bold tracking-tight text-gray-900">
             Super Sticker
           </h1>
+        </div>
+
+        {/* Settings Button with Theme Picker */}
+        <div class="relative">
+          <button
+            onClick={() => setIsThemePickerOpen(!isThemePickerOpen())}
+            class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            title="Note theme">
+            <SettingsIcon class="w-4 h-4" />
+          </button>
+
+          {/* Theme Picker Popover */}
+          <Show when={isThemePickerOpen()}>
+            <div class="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-lg border border-gray-100 p-3 z-50 animate-slide-in">
+              <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2.5">
+                Note Theme
+              </p>
+              <div class="flex gap-2">
+                <For each={THEME_IDS}>
+                  {(themeId) => {
+                    const theme = THEMES[themeId];
+                    return (
+                      <button
+                        onClick={() => handleThemeSelect(themeId)}
+                        class="relative w-7 h-7 rounded-full border-2 transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-1"
+                        classList={{
+                          "border-gray-300": currentTheme() !== themeId,
+                          "border-gray-600 ring-1 ring-gray-400":
+                            currentTheme() === themeId
+                        }}
+                        style={{ background: theme.primaryColor }}
+                        title={theme.name}>
+                        <Show when={currentTheme() === themeId}>
+                          <CheckIcon class="w-3.5 h-3.5 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 drop-shadow-sm" />
+                        </Show>
+                      </button>
+                    );
+                  }}
+                </For>
+              </div>
+            </div>
+          </Show>
         </div>
       </header>
 

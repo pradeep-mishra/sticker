@@ -4,11 +4,13 @@ import {
   deleteNote as deleteNoteFromStorage,
   generateNoteId,
   getNotesForUrl,
+  getNoteTheme,
   saveNote,
   setNotesVisibility,
   updateNote as updateNoteInStorage
 } from "@/lib/storage";
 import type { Note } from "@/types/notes";
+import { getTheme, type NoteTheme, type ThemeId } from "@/types/theme";
 import { createEffect, createSignal, For, Show } from "solid-js";
 import { render } from "solid-js/web";
 import { browser } from "wxt/browser";
@@ -34,6 +36,9 @@ export default defineContentScript({
     const [editingNoteId, setEditingNoteId] = createSignal<string | null>(null);
     const [pendingElement, setPendingElement] = createSignal<Element | null>(
       null
+    );
+    const [currentTheme, setCurrentTheme] = createSignal<NoteTheme>(
+      getTheme("yellow")
     );
 
     // Event handlers - must be defined before render
@@ -144,10 +149,11 @@ export default defineContentScript({
 
       // Add highlights if notes are visible
       if (notesVisible()) {
+        const theme = currentTheme();
         for (const note of notes()) {
           const element = findElement(note.selector) as HTMLElement | null;
           if (element) {
-            element.style.outline = "2px dashed #3B82F6";
+            element.style.outline = `2px dashed ${theme.anchorHighlight}`;
             element.dataset.stickerHighlight = "true";
             highlightedElements.add(element);
           }
@@ -155,11 +161,12 @@ export default defineContentScript({
       }
     };
 
-    // Effect to update highlights when visibility or notes change
+    // Effect to update highlights when visibility, notes, or theme change
     createEffect(() => {
       // Access reactive dependencies
       const visible = notesVisible();
       const notesList = notes();
+      const theme = currentTheme();
       updateAnchorHighlights();
     });
 
@@ -207,6 +214,7 @@ export default defineContentScript({
                   {(note) => (
                     <StickyNote
                       note={note}
+                      theme={currentTheme()}
                       isEditing={editingNoteId() === note.id}
                       onEdit={() => setEditingNoteId(note.id)}
                       onSave={(content) => handleSaveNote(note.id, content)}
@@ -219,6 +227,7 @@ export default defineContentScript({
                 {/* Orphan Notes Panel */}
                 <OrphanPanel
                   notes={orphanNotes()}
+                  theme={currentTheme()}
                   editingNoteId={editingNoteId()}
                   onEditNote={setEditingNoteId}
                   onSaveNote={handleSaveNote}
@@ -240,8 +249,23 @@ export default defineContentScript({
     // Reset visibility state on page load (notes start hidden)
     await setNotesVisibility(false);
 
+    // Load theme from storage
+    const themeId = await getNoteTheme();
+    setCurrentTheme(getTheme(themeId));
+
     // Load notes after mount
     await loadNotes();
+
+    // Listen for storage changes (theme updates from popup)
+    const handleStorageChange = (
+      changes: Record<string, { oldValue?: unknown; newValue?: unknown }>
+    ) => {
+      if (changes.sticker_theme?.newValue) {
+        const newThemeId = changes.sticker_theme.newValue as ThemeId;
+        setCurrentTheme(getTheme(newThemeId));
+      }
+    };
+    browser.storage.local.onChanged.addListener(handleStorageChange);
 
     // Message listener for popup communication
     // Note: WXT 0.20 removed webextension-polyfill, so async responses must use sendResponse callback
@@ -315,6 +339,7 @@ export default defineContentScript({
     ctx.onInvalidated(() => {
       // Remove event listeners
       document.removeEventListener("keydown", handleKeydown);
+      browser.storage.local.onChanged.removeListener(handleStorageChange);
 
       // Clear any element highlights
       highlightedElements.forEach((el) => {
