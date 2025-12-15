@@ -30,7 +30,7 @@ export function NewNoteEditor(props: {
         top: position().top,
         left: position().left,
         width: `${NOTE_DIMENSIONS.width}px`,
-        "z-index": "2147483646",
+        "z-index": "9999",
         animation: "scaleIn 0.2s ease-out"
       }}>
       <div

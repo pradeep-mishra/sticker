@@ -10,9 +10,12 @@ export default {
           dark: "rgba(0, 0, 0, 0.1)"
         },
         sticker: {
-          primary: "#3B82F6",
+          primary: "#359EFF",
+          secondary: "#F3F4F6",
           accent: "#F59E0B",
-          danger: "#EF4444"
+          danger: "#EF4444",
+          "background-light": "#f5f7f8",
+          "background-dark": "#0f1923"
         }
       },
       backdropBlur: {
@@ -20,10 +23,16 @@ export default {
       },
       boxShadow: {
         glass: "0 8px 32px rgba(0, 0, 0, 0.1)",
-        "glass-hover": "0 12px 40px rgba(0, 0, 0, 0.15)"
+        "glass-hover": "0 12px 40px rgba(0, 0, 0, 0.15)",
+        soft: "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)",
+        glow: "0 0 15px rgba(37, 99, 235, 0.3)"
       },
       borderRadius: {
-        glass: "12px"
+        glass: "12px",
+        DEFAULT: "0.25rem",
+        lg: "0.5rem",
+        xl: "0.75rem",
+        full: "9999px"
       },
       animation: {
         "fade-in": "fadeIn 0.2s ease-out",

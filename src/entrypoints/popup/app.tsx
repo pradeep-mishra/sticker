@@ -277,11 +277,11 @@ const App: Component = () => {
   };
 
   return (
-    <div class="flex flex-col min-h-[200px] max-h-[500px] bg-gray-50/50 font-sans text-gray-900 selection:bg-blue-100 selection:text-blue-900">
+    <div class="w-full max-w-[380px] bg-gray-100 flex flex-col min-h-[200px] max-h-[500px] font-sans text-gray-900 shadow-xl overflow-hidden relative">
       {/* Header */}
-      <header class="px-5 py-4 flex items-center justify-between bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-10">
+      <header class="px-5 py-4 flex items-center justify-between shadow-sm bg-white border-b border-border-light sticky top-0 z-10">
         <div class="flex items-center gap-2.5">
-          <div class="p-1.5 bg-blue-50 rounded-lg text-sticker-primary">
+          <div class="w-8 h-8 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg flex items-center justify-center shadow-sm">
             <SuperStickerIcon class="w-5 h-5" />
           </div>
           <h1 class="text-lg font-bold tracking-tight text-gray-900">
@@ -392,7 +392,7 @@ const App: Component = () => {
               }>
               <button
                 onClick={handleAddNote}
-                class="group flex items-center justify-center gap-3 w-full py-3 px-4 bg-gradient-to-br from-sticker-primary to-blue-600 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
+                class="group flex items-center justify-center gap-3 w-full py-3 px-4 bg-gradient-to-br bg-sticker-primary hover:bg-blue-600 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
                 <div class="p-1 bg-white/20 rounded-full group-hover:bg-white/30 transition-colors">
                   <PlusIcon class="w-4 h-4" />
                 </div>
@@ -464,7 +464,7 @@ const App: Component = () => {
                       {(note) => (
                         <div
                           onClick={() => handleViewNote(note.id)}
-                          class="group relative bg-white p-3.5 rounded-xl border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:border-blue-100/50 transition-all duration-300 animate-slide-in cursor-pointer">
+                          class="note-item group relative bg-white p-3.5 rounded-xl border border-border-light shadow-soft transition-all duration-300 animate-slide-in cursor-pointer">
                           <p class="text-sm text-gray-600 leading-relaxed line-clamp-2 pr-6 font-medium">
                             {truncateContent(note.content)}
                           </p>
@@ -493,7 +493,7 @@ const App: Component = () => {
       </main>
 
       {/* Footer - Keyboard Shortcuts */}
-      <footer class="px-4 py-3 bg-gradient-to-b from-gray-50/50 to-gray-100/50 border-t border-gray-100 select-none">
+      <footer class="px-4 py-3 bg-white select-none border-t border-border-light shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
         <div class="flex justify-between gap-1.5">
           <KeyboardShortcut
             keys={[getModifierKeys().alt, getModifierKeys().shift, "A"]}
